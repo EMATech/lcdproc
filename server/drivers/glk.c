@@ -574,13 +574,13 @@ glk_output(Driver *drvthis, int on)
 	PrivateData *p = drvthis->private_data;
 
 	if (p->gpo_count < 2) {
-    		glkputl(p->fd, GLKCommand, ((on) ? 'W' : 'V'), EOF);
+		glkputl(p->fd, GLKCommand, ((on) ? 0x56 : 0x57), EOF);
 	}
 	else {
 		int  i;
 
 		for (i = 1; i <= p->gpo_count; ++i, on >>= 1) {
-			glkputl(p->fd, GLKCommand, ((on & 1) ? 'W' : 'V'), i, EOF);
+			glkputl(p->fd, GLKCommand, ((on & 1) ? 0x56 : 0x57), i, EOF);
 		}
 	}
 }
