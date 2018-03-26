@@ -256,7 +256,10 @@ glk_init(Driver *drvthis)
    * Enable auto-transmit of up/down key events. This allows us to generate
    * REPEAT keys distinct from normal keys using timeouts. (see glk_get_key)
    */
-  glkputl(p->fd, GLKCommand, 0x7e, 1, GLKCommand, 0x41, EOF);
+  glkputl(p->fd,
+		  GLKCommand, 0x7e, 1,
+		  GLKCommand, 0x41,
+		  EOF);
 
   /* Set p->contrast */
   glk_set_contrast(drvthis, p->contrast);
@@ -781,25 +784,26 @@ glk_get_key(Driver *drvthis)
 
   /* Remap keys according to what LCDproc expects */
   switch (c) {
-    case 'V' :			// default mapping
-    case 'I' : key = "Enter";	// pyramid mapping
-	       break;
-    case 'P' :			// default mapping
-    case 'D' : key = "Left";	// pyramid mapping
-	       break;
-    case 'Q' :			// default mapping
-    case 'E' : key = "Right";	// pyramid mapping
-	       break;
-    case 'L' :			// default mapping
-    case 'J' : key = "Escape";	// pyramid mapping
-	       break;
-    case 'U' :			// default mapping
-    case 'C' : key = "Up";	// pyramid mapping
-	       break;
-    case 'K' :			// default mapping
-    case 'H' : key = "Down";	// pyramid mapping
-	       break;
-    default :  break;
+    case 0x45 :
+		key = "Enter";
+		break;
+    case 0x44 :
+		key = "Left";
+		break;
+    case 0x43 : // default mapping
+		key = "Right";
+		break;
+    case 0x41 : // default mapping
+		key = "Escape";
+		break;
+    case 0x42 : // default mapping
+		key = "Up";
+		break;
+    case 0x48 : // default mapping
+		key = "Down";
+		break;
+    default :
+		break;
 
     /* What to do with repeated keys? We currently ignore them. */
     //case 'v' : c = 'N'; break;
