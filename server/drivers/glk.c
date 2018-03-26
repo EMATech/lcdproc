@@ -494,10 +494,10 @@ glk_chr(Driver *drvthis, int x, int y, char c)
 		myc = p->CGRAM[myc & 7];
 	} else if ((myc == 255) || (myc == -1)) {
 		/* Solid block */
-		myc = 133;
+		myc = 35; // #
 	} else if (((myc > 15) && (myc < 32)) || (myc > 143)) {
 		debug(RPT_DEBUG, "Attempt to write %d to (%d,%d)", myc, x, y);
-		myc = 133;
+		myc = 35; // #
 	}
 
 	if ((x >= 0) && (y >= 0) && (x < p->width) && (y < p->height))
@@ -640,31 +640,34 @@ MODULE_EXPORT void
 glk_vbar(Driver *drvthis, int x, int y, int len, int promille, int options)
 {
 	PrivateData *p = drvthis->private_data;
+	char map[] = { ' ', ' ', '-', '-', '=', '=', '#', '#' };
 	int pixels = ((long) 2 * len * p->cellheight) * promille / 2000;
+	int pos;
 
 	debug(RPT_DEBUG, "glk_old_vbar(%d, %d)", x, pixels);
 
-	while (pixels > p->cellheight) {
-		glk_chr(drvthis, x, y, 255);
-		--y;
+	/* Implementation borrowed from the ncurses driver */
+	for (pos = 0; pos < len; pos++) {
+
+		if (y - pos <= 0)
+			return;
+
+		if (pixels >= p->cellheight) {
+			/* write a "full" block to the screen... */
+			glk_chr(drvthis, x, y-pos, '#');
+		}
+		else if (pixels > 0) {
+			// write a partial block...
+			glk_chr(drvthis, x, y-pos, map[len-1]);
+			break;
+		}
+		else {
+			; // write nothing (not even a space)
+		}
+
 		pixels -= p->cellheight;
 	}
 
-	if (y >= 0) {
-		int lastc;
-
-		switch (pixels) {
-			case 0 :  return;	/* Don't output a char */
-			case 1 :  lastc = 138; break;  /* One bar */
-			case 2 :  lastc = 139; break;
-			case 3 :  lastc = 140; break;
-			case 4 :  lastc = 141; break;
-			case 5 :  lastc = 142; break;
-			case 6 :  lastc = 143; break;
-			default:  lastc = 133; break;
-		}
-		glk_chr(drvthis, x, y, lastc);
-	}
 }
 
 
@@ -676,27 +679,30 @@ glk_hbar(Driver *drvthis, int x, int y, int len, int promille, int options)
 {
 	PrivateData *p = drvthis->private_data;
 	int pixels = ((long) 2 * len * p->cellwidth) * promille / 2000;
+	int pos;
 
 	debug(RPT_DEBUG, "glk_old_hbar(%d, %d, %d)", x, y, pixels);
 
-	while (pixels > p->cellwidth) {
-		glk_chr(drvthis, x, y, 255);
-		++x;
-		pixels -= p->cellwidth;
-	}
+	/* Implementation borrowed from the ncurses driver */
+	for (pos = 0; pos < len; pos++) {
 
-	if (x <= p->width) {
-		int lastc;
+		if (x + pos > p->width)
+			return;
 
-		switch (pixels) {
-			case 0 :  lastc = ' '; break;
-			case 1 :  lastc = 134; break;  /* One bar */
-			case 2 :  lastc = 135; break;
-			case 3 :  lastc = 136; break;
-			case 4 :  lastc = 137; break;
-			default:  lastc = 133; break;
+		if (pixels >= p->cellwidth * 2/3) {
+			/* write a "full" block to the screen... */
+			glk_chr(drvthis, x+pos, y, '=');
 		}
-		glk_chr(drvthis, x, y, lastc);
+		else if (pixels > p->cellwidth * 1/3) {
+			/* write a partial block... */
+			glk_chr(drvthis, x+pos, y, '-');
+			break;
+		}
+		else {
+			; // write nothing (not even a space)
+		}
+
+		pixels -= p->cellwidth;
 	}
 }
 
@@ -709,24 +715,8 @@ glk_icon (Driver *drvthis, int x, int y, int icon)
 {
     debug(RPT_DEBUG, "%s: x=%d, y=%d, icon=%x", __FUNCTION__, x, y, icon);
 
-    switch (icon) {
-      case ICON_BLOCK_FILLED:
-	glk_chr(drvthis, x, y, 255);
-	break;
-      case ICON_HEART_FILLED:
-	glk_chr(drvthis, x, y, 132);
-	break;
-      case ICON_HEART_OPEN:
-	glk_chr(drvthis, x, y, 131);
-	break;
-      case ICON_ELLIPSIS:
-	glk_chr(drvthis, x, y, 128);
-	break;
-      default:
-	return -1;		/* Let the core do the others */
-    }
+	return -1;		/* Let the core do */
 
-    return 0;
 }
 
 
