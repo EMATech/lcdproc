@@ -55,7 +55,7 @@ int glkput( GLKDisplay * fd, int c );
 int glkget( GLKDisplay * fd );
 int glkgetc( GLKDisplay * fd );
 int glkpoll( GLKDisplay * fd, int timeout );
-int glkflow( GLKDisplay * fd, int full, int empty );
+int glkflow( GLKDisplay * fd, int bufsize, int maxchunk );
 
 int glkunget( GLKDisplay * fd, int c );
 

@@ -47,6 +47,7 @@
 #define GLK_DEFAULT_CONTRAST	500
 #define GLK_DEFAULT_CELLWIDTH	6
 #define GLK_DEFAULT_CELLHEIGHT	8
+#define GLK_DEFAULT_BUFFER_SIZE	96
 
 
 /** private data for the \c glk driver */
@@ -73,6 +74,8 @@ typedef struct glk_private_data {
 
   int clearcount;
   unsigned char CGRAM[8];
+
+	int buffer_size;
 } PrivateData;
 
 
@@ -114,6 +117,7 @@ glk_init(Driver *drvthis)
   p->cellheight = GLK_DEFAULT_CELLHEIGHT;
   p->contrast = GLK_DEFAULT_CONTRAST;
   p->clearcount = 0;
+	p->buffer_size = GLK_DEFAULT_BUFFER_SIZE;
 
   /* Read config file */
 
@@ -218,6 +222,7 @@ glk_init(Driver *drvthis)
 			p->width = 32;
 			p->height = 8;
 			p->gpo_count = 6;
+			p->buffer_size = 128;
 			break;
       default :
 	report(RPT_ERR, "%s: unrecognized module type: 0x%02X", drvthis->name, i);
@@ -242,7 +247,7 @@ glk_init(Driver *drvthis)
   glkputl(p->fd, GLKCommand, 0x58, EOF);
 
   /* Enable flow control */
-  glkflow(p->fd, 40, 2);
+  glkflow(p->fd, p->buffer_size, p->width + 8); // One line plus 8 bytes overhead
 
   /* Set read character timeout to 0 */
   glktimeout(p->fd, 0);

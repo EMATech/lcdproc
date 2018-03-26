@@ -142,18 +142,20 @@ glktimeout(GLKDisplay *fd, int timeout)
 /* glkflow
  *
  * Turn flow control processing for the port on/off and
- *    set the high/low water marks.  NOTE: This assumes
- *    the GLK12232-25SM which has a 96 byte buffer.
+ *    set the high/low water marks.
  */
-#define GLKBUF (96)
 int
-glkflow(GLKDisplay *fd, int full, int empty)
+glkflow(GLKDisplay *fd, int bufsize, int maxchunk)
 {
    struct termios t;
 
-   if ((full > GLKBUF -1)
-       || (empty > GLKBUF -1)
-       || (full + empty > GLKBUF -1)) {
+   int full = maxchunk;
+   int empty = bufsize - maxchunk;
+
+   if ((full > bufsize -1)
+       || (empty > bufsize -1)
+       || (full + empty > bufsize -1)
+       || (full > empty)) {
       errno = EINVAL;
       return(1);
    }
